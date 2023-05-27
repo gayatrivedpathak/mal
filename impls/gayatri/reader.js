@@ -18,7 +18,8 @@ class Reader {
 }
 
 const tokenize = (str) => {
-  const regex = /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/g;
+  const regex
+    = /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/g;
 
   return [...str.matchAll(regex)].map(x => x[1]).slice(0,-1);
 };
@@ -27,7 +28,7 @@ const read_atom = reader => {
   const token = reader.next();
 
   if (token.match(/^-?[0-9]+$/)) 
-    return new MalValue(parseInt(token));
+    return parseInt(token);
   if (token === 'true')
     return true;
   if (token === 'false')
@@ -84,4 +85,4 @@ const read_str = str => {
   return read_form(reader);
 };
 
-module.exports = {read_str};
+module.exports = { read_str };
