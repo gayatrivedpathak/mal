@@ -28,13 +28,21 @@ class MalList extends MalValue{
   }
 }
 
+const pr_str = malValue => {
+  if (malValue instanceof MalValue) {
+    return malValue.pr_str();
+  }
+
+  return malValue.toString();
+};
+
 class MalVector extends MalValue{
   constructor(value) {
     super(value);
   }
 
   pr_str() {
-    return "[" + this.value.map(this.pr_str).join(' ') + "]";
+    return "[" + this.value.map(x=> pr_str(x)).join(' ') + "]";
   }
 }
 
@@ -48,4 +56,14 @@ class MalNil extends MalValue{
   }
 }
 
-module.exports = { MalSymbol, MalValue, MalList, MalVector, MalNil };
+class MalHashmap extends MalValue{
+  constructor(value) {
+    super(value);
+  }
+
+  pr_str() {
+   return "{" + this.value.map(x=>x.pr_str).join(' ') + "}";
+  }
+}
+
+module.exports = { MalSymbol, MalValue, MalList, MalVector, MalNil, MalHashmap };

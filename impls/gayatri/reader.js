@@ -64,6 +64,11 @@ const read_vector = reader => {
   return new MalVector(ast);
 };
 
+const read_hashmap = reader => {
+  const ast = read_hashmap(reader, '}');
+  return new MalHashmap(ast)
+}
+
 const read_form = reader => {
   const token = reader.peek();
 
@@ -73,6 +78,9 @@ const read_form = reader => {
     
     case '[': 
       return read_vector(reader);      
+    
+    case '{': 
+      return read_hashmap(reader);      
     
     default: 
       return read_atom(reader);      
