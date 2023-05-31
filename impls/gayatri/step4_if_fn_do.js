@@ -26,6 +26,42 @@ const eval_ast = (ast, env) => {
   return ast;
 };
 
+const evalLet = (env, ast) => {
+  const letEnv = new Env(env);
+  const newBindings = ast.value[1].value;
+
+  for (let index = 0; index < newBindings.length; index += 2) {
+    letEnv.set(newBindings[index], EVAL(newBindings[index + 1], letEnv));
+  }
+
+  return EVAL(ast.value[2], letEnv);
+};
+
+const evalIf = (ast, env) => {
+  const [fn, condition, firstStatement, secondStatement] = ast.value;
+
+  const predicateResult = EVAL(condition, env);
+  if (predicateResult !== false && !(predicateResult instanceof MalNil)) {
+    return EVAL(firstStatement, env);
+  }
+
+  return EVAL(secondStatement, env);
+};
+
+const evalFn = (ast, env) => {
+  const [fnName, bindings, expressions ] = ast.value;
+
+  return (...args) => {
+    const innerEnv = new Env(env);
+
+    bindings.value.forEach((binding, index) => {
+      innerEnv.set(binding, args[index]);    
+    });    
+
+    return EVAL(expressions, innerEnv);
+  };
+};
+
 const READ = str => read_str(str);
 
 const EVAL = (ast, env) => {
@@ -41,27 +77,17 @@ const EVAL = (ast, env) => {
       return env.get(ast.value[1]);
     
     case 'let*':
-      const letEnv = new Env(env);
-      const newBindings = ast.value[1].value;
-
-      for (let index = 0; index < newBindings.length; index += 2){
-        letEnv.set(newBindings[index], EVAL(newBindings[index + 1], letEnv));
-      }
-
-      return EVAL(ast.value[2], letEnv);
+      return evalLet(env, ast);
     
     case 'do':
       return eval_ast(ast, env);
     
     case 'if':
-      const predicateResult = EVAL(ast.value[1], env);
-      if (predicateResult !== false && !(predicateResult instanceof MalNil)) {
-        return EVAL(ast.value[2], env);
-      } 
-
-      return EVAL(ast.value[3], env);
-      
-  }
+      return evalIf(ast, env);
+    
+    case 'fn*':
+      return evalFn(ast, env);
+  };
 
   const [fn, ...args] = eval_ast(ast, env).value;
   return fn.apply(null, args);
@@ -75,9 +101,12 @@ env.set(new MalSymbol('+'), (...args) => args.reduce((a, b) => a + b));
 env.set(new MalSymbol('*'), (...args) => args.reduce((a, b) => a + b));
 env.set(new MalSymbol('/'), (...args) => args.reduce((a, b) => Math.round(a / b)));
 env.set(new MalSymbol('-'), (...args) => args.reduce((a, b) => a - b));
-env.set(new MalSymbol('<'), (...args) => args.reduce((a, b) => a < b));
-env.set(new MalSymbol('>'), (...args) => args.reduce((a, b) => a > b));
-env.set(new MalSymbol('='), (...args) => args.reduce((a, b) => a === b));
+
+env.set(new MalSymbol('<'), (a, b) => a < b);
+env.set(new MalSymbol('<='), (a, b) => a <= b);
+env.set(new MalSymbol('>'), (a, b) => a > b);
+env.set(new MalSymbol('>='), (a, b) => a >= b);
+env.set(new MalSymbol('='), (a, b) => a === b);
 
 const rep = str => PRINT(EVAL(READ(str),env));
 
