@@ -9,13 +9,6 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const env_ = {
-  '+': (...args) => args.reduce((a, b) => a + b),
-  '*': (...args) => args.reduce((a, b) => a * b),
-  '-': (...args) => args.reduce((a, b) => a - b),
-  '/': (...args) => args.reduce((a, b) => a / b),
-};
-
 const eval_ast = (ast, env) => {
   if (ast instanceof MalSymbol) {
     return env.get(ast);
@@ -58,11 +51,11 @@ const EVAL = (ast, env) => {
       return EVAL(ast.value[2], letEnv);
     
     case 'do':
-      return eval_ast(ast, anv);
+      return eval_ast(ast, env);
     
     case 'if':
-      const predicateResult = EVAL(ast.value[1]);
-      if (predicateResult && !(predicateResult instanceof MalNil)) {
+      const predicateResult = EVAL(ast.value[1], env);
+      if (predicateResult !== false && !(predicateResult instanceof MalNil)) {
         return EVAL(ast.value[2], env);
       } 
 
@@ -82,7 +75,9 @@ env.set(new MalSymbol('+'), (...args) => args.reduce((a, b) => a + b));
 env.set(new MalSymbol('*'), (...args) => args.reduce((a, b) => a + b));
 env.set(new MalSymbol('/'), (...args) => args.reduce((a, b) => Math.round(a / b)));
 env.set(new MalSymbol('-'), (...args) => args.reduce((a, b) => a - b));
-
+env.set(new MalSymbol('<'), (...args) => args.reduce((a, b) => a < b));
+env.set(new MalSymbol('>'), (...args) => args.reduce((a, b) => a > b));
+env.set(new MalSymbol('='), (...args) => args.reduce((a, b) => a === b));
 
 const rep = str => PRINT(EVAL(READ(str),env));
 
