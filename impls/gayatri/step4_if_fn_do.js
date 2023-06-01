@@ -3,6 +3,7 @@ const { pr_str } = require("./printer.js");
 const { read_str } = require("./reader.js");
 const { MalSymbol, MalList, MalVector, MalNil } = require('./types.js');
 const { Env } = require('./env.js');
+const { ns } = require('./core.js');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -62,6 +63,12 @@ const evalFn = (ast, env) => {
   };
 };
 
+const evalDo = (ast, env) => {
+  const exprs = ast.value.slice(1);
+  const result = exprs.reduce((r, expr) => eval_ast(expr, env), 0);
+  return EVAL(result, env);
+};
+
 const READ = str => read_str(str);
 
 const EVAL = (ast, env) => {
@@ -80,7 +87,7 @@ const EVAL = (ast, env) => {
       return evalLet(env, ast);
     
     case 'do':
-      return eval_ast(ast, env);
+      return evalDo(ast, env);
     
     case 'if':
       return evalIf(ast, env);
@@ -95,20 +102,17 @@ const EVAL = (ast, env) => {
 
 const PRINT = str => pr_str(str);
 
-const env = new Env();
+const initEnv = () => {
+  const env = new Env();
+  for (const symbol in ns) {
+    env.set(new MalSymbol(symbol), ns[symbol] );
+  }
+  return env;
+};
 
-env.set(new MalSymbol('+'), (...args) => args.reduce((a, b) => a + b));
-env.set(new MalSymbol('*'), (...args) => args.reduce((a, b) => a + b));
-env.set(new MalSymbol('/'), (...args) => args.reduce((a, b) => Math.round(a / b)));
-env.set(new MalSymbol('-'), (...args) => args.reduce((a, b) => a - b));
+const env = initEnv();
 
-env.set(new MalSymbol('<'), (a, b) => a < b);
-env.set(new MalSymbol('<='), (a, b) => a <= b);
-env.set(new MalSymbol('>'), (a, b) => a > b);
-env.set(new MalSymbol('>='), (a, b) => a >= b);
-env.set(new MalSymbol('='), (a, b) => a === b);
-
-const rep = str => PRINT(EVAL(READ(str),env));
+const rep = str => PRINT(EVAL(READ(str), env));
 
 const repl = () => rl.question('user> ', line => {
   try {
@@ -118,5 +122,7 @@ const repl = () => rl.question('user> ', line => {
   }
   repl();
 });
+
+EVAL(READ("(def! not (fn* (a) (if a false true)))"), env);
 
 repl();
