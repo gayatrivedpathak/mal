@@ -39,7 +39,7 @@ const evalLet = (env, ast) => {
 };
 
 const evalIf = (ast, env) => {
-  const [fn, condition, firstStatement, secondStatement] = ast.value;
+  const [condition, firstStatement, secondStatement] = ast.value.slice(1);
 
   const predicateResult = EVAL(condition, env);
   if (predicateResult !== false && !(predicateResult instanceof MalNil)) {
@@ -50,7 +50,7 @@ const evalIf = (ast, env) => {
 };
 
 const evalFn = (ast, env) => {
-  const [fnName, bindings, expressions ] = ast.value;
+  const [bindings, expressions] = ast.value.slice(1);
 
   return (...args) => {
     const innerEnv = new Env(env);
