@@ -10,6 +10,14 @@ const deepEqual = (element1, element2) => {
   return false;
 };
 
+const pr_str = malValue => {
+  if (malValue instanceof MalValue) {
+    return malValue.pr_str();
+  }
+
+  return malValue.toString();
+};
+
 class MalValue {
   constructor(value) {
     this.value = value;
@@ -32,7 +40,7 @@ class MalList extends MalValue{
   }
 
   pr_str() {
-   return "(" + this.value.map(this.pr_str).join(' ') + ")";
+   return "(" + this.value.map(pr_str).join(' ') + ")";
   }
 
   isEmpty() {
@@ -47,21 +55,13 @@ class MalList extends MalValue{
   }
 }
 
-const pr_str = malValue => {
-  if (malValue instanceof MalValue) {
-    return malValue.pr_str();
-  }
-
-  return malValue.toString();
-};
-
 class MalVector extends MalValue{
   constructor(value) {
     super(value);
   }
 
   pr_str() {
-    return "[" + this.value.map(x=> pr_str(x)).join(' ') + "]";
+    return "[" + this.value.map(x => pr_str(x)).join(' ') + "]";
   }
 
   equals(otherList) {
@@ -92,7 +92,7 @@ class MalHashmap extends MalValue{
   }
 
   pr_str() {
-   return "{" + this.value.map(x=>x.pr_str).join(' ') + "}";
+    return "{" + this.value.map(x => x.pr_str).join(' ') + "}";
   }
 }
 

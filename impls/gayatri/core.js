@@ -9,7 +9,7 @@ const ns = {
 
   'count': (list) => list.value.length,
   'list?': (list) => list instanceof MalList,
-  'list': (...list) => new MalList(list),
+  'list': (...elements) => new MalList(elements),
   'empty?': (seq) => seq.value.length === 0,
   'str': (value) => value.toString(),
 

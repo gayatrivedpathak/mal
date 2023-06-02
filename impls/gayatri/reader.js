@@ -29,6 +29,10 @@ const read_atom = reader => {
 
   if (token.match(/^-?[0-9]+$/)) 
     return parseInt(token);
+  if (token.startsWith(':'))
+    return token;
+  if (token.startsWith("\""))
+    return token;
   if (token === 'true')
     return true;
   if (token === 'false')
