@@ -96,6 +96,18 @@ class MalHashmap extends MalValue{
   }
 }
 
+class MalFunction extends MalValue{
+  constructor(ast, binds, env) {
+    super(ast);
+    this.binds = binds;
+    this.env = env;
+  }
+
+  pr_str() {
+    return '#Function';
+  }
+}
+
 module.exports = {
   MalSymbol,
   MalValue,
@@ -103,5 +115,6 @@ module.exports = {
   MalVector,
   MalNil,
   MalHashmap,
-  deepEqual
+  deepEqual,
+  MalFunction
 };
