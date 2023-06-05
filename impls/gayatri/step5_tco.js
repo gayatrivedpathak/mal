@@ -93,15 +93,11 @@ const EVAL = (ast, env) => {
 
       default:
         const [fn, ...args] = eval_ast(ast, env).value;
-        // console.log('while applying', fn);
-
         if (fn instanceof MalFunction) {
           const olderEnv = fn.env;
-          console.log(fn.binds, '----');
           env = new Env(olderEnv, fn.binds, args);
           ast = fn.value;
         } else {
-          console.log('while applying', fn);
           return fn.apply(null, args);
         }
     };
