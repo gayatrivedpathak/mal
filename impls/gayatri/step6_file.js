@@ -51,7 +51,11 @@ const evalIf = (ast, env) => {
 
 const evalFn = (ast, env) => {
   const [binds, exprs] = ast.value.slice(1);
-  return new MalFunction(exprs, binds.value, env);
+  const fn = (...args) => {
+    const newEnv = new Env(env, binds.value, args);
+    return EVAL(exprs, newEnv);
+  }
+  return new MalFunction(exprs, binds.value, env, fn);
 };
 
 const evalDo = (ast, env) => {
@@ -108,9 +112,16 @@ const PRINT = str => pr_str(str);
 
 const initEnv = () => {
   const env = new Env();
+
+  env.set(new MalSymbol('eval'), (ast) => EVAL(ast, env));
+
   for (const symbol in ns) {
     env.set(new MalSymbol(symbol), ns[symbol]);
   }
+
+  EVAL(READ("(def! not (fn* (a) (if a false true)))"), env);
+  EVAL(READ('(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\nnil)")))))'), env);
+  
   return env;
 };
 
@@ -126,7 +137,5 @@ const repl = () => rl.question('user> ', line => {
   }
   repl();
 });
-
-EVAL(READ("(def! not (fn* (a) (if a false true)))"), env);
 
 repl();

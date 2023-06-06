@@ -1,4 +1,4 @@
-const { MalSymbol, MalList, MalVector, MalValue, MalNil } = require("./types");
+const { MalSymbol, MalList, MalVector, MalNil, createString, MalString } = require("./types");
 
 class Reader {
   constructor(tokens) {
@@ -21,18 +21,20 @@ const tokenize = (str) => {
   const regex
     = /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/g;
 
-  return [...str.matchAll(regex)].map(x => x[1]).slice(0,-1);
+  return [...str.matchAll(regex)].map(x => x[1]).slice(0, -1);
 };
 
-const read_atom = reader => { 
+const read_atom = reader => {
   const token = reader.next();
 
-  if (token.match(/^-?[0-9]+$/)) 
+  if (token.match(/^-?[0-9]+$/))
     return parseInt(token);
   if (token.startsWith(':'))
     return token;
-  if (token.startsWith("\""))
-    return token;
+  if (token.startsWith("\"")) {
+    const string = createString(token);
+    return new MalString(string.slice(1, -1)).value;
+  }
   if (token === 'true')
     return true;
   if (token === 'false')
@@ -50,7 +52,7 @@ const read_seq = (reader, closingSymbol) => {
   while (reader.peek() !== closingSymbol) {
     if (reader.peek() === undefined)
       throw 'unbalanced';
-    
+
     ast.push(read_form(reader));
   }
 
@@ -73,21 +75,38 @@ const read_hashmap = reader => {
   return new MalHashmap(ast)
 }
 
+const prependSymbol = (reader, symbol) => {
+  reader.next();
+  const malSymbol = new MalSymbol(symbol);
+  const ast = read_form(reader);
+  return new MalList([malSymbol, ast]);
+};
+
 const read_form = reader => {
   const token = reader.peek();
 
-  switch (token) {
-    case '(': 
-      return read_list(reader);      
+  switch (token[0]) {
+    case '(':
+      return read_list(reader);
+
+    case '[':
+      return read_vector(reader);
+
+    case '{':
+      return read_hashmap(reader);
+
+    case ';':
+      reader.next();
+      return new MalNil();
+
+    case '@':
+      return prependSymbol(reader, 'deref');
     
-    case '[': 
-      return read_vector(reader);      
-    
-    case '{': 
-      return read_hashmap(reader);      
-    
-    default: 
-      return read_atom(reader);      
+    case "'":
+      return prependSymbol(reader, 'quote');
+
+    default:
+      return read_atom(reader);
   }
 };
 
