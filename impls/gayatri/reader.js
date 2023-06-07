@@ -33,7 +33,7 @@ const read_atom = reader => {
     return token;
   if (token.startsWith("\"")) {
     const string = createString(token);
-    return new MalString(string.slice(1, -1)).value;
+    return new MalString(string.slice(1, -1));
   }
   if (token === 'true')
     return true;
@@ -104,6 +104,15 @@ const read_form = reader => {
     
     case "'":
       return prependSymbol(reader, 'quote');
+    
+    case "`":
+      return prependSymbol(reader, 'quote');
+    
+    case "~":
+      return prependSymbol(reader, 'unquote');
+    
+    case "~@":
+      return prependSymbol(reader, 'splice-unquote');
 
     default:
       return read_atom(reader);

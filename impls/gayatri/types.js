@@ -1,9 +1,11 @@
 const deepEqual = (element1, element2) => {
+
   if (element1 === element2) {
     return true;
   }
 
   if (element1 instanceof MalValue && element2 instanceof MalValue) {
+    console.log(element1, element2);
     return element1.equals(element2);
   }
 
@@ -21,8 +23,6 @@ const pr_str = (malValue, readable = false) => {
     return malValue.pr_str(readable);
   }
 
-  // console.log(malValue);
-
   return malValue.toString();
 };
 
@@ -31,14 +31,18 @@ class MalValue {
     this.value = value;
   }
 
-  pr_str(readable = false) {
-    return this.value.toString(readable);
+  pr_str() {
+    return this.value.toString();
   }
 }
 
 class MalSymbol extends MalValue {
   constructor(value) {
     super(value);
+  }
+
+  equals(other) {
+    return (other instanceof MalSymbol) && this.value === other.value;
   }
 }
 
@@ -53,6 +57,10 @@ class MalList extends MalValue {
 
   isEmpty() {
     return this.value.length === 0;
+  }
+
+  beginsWith(symbol) {
+    return this.value.length && this.value[0].value === symbol;
   }
 
   equals(otherList) {
@@ -74,7 +82,11 @@ class MalString extends MalValue {
         .replace(/\\/g, "\\\\")
         .replace(/"/g, '\\"')
         .replace(/\n/g, "\\n") +
-      '"'
+      '"';
+  }
+
+  equals(other) {
+    return (other instanceof MalString) && this.value === other.value;
   }
 };
 
@@ -84,7 +96,7 @@ class MalVector extends MalValue {
   }
 
   pr_str() {
-    return "[" + this.value.map(x => pr_str(x)).join(' ') + "]";
+    return "[" + this.value.map(pr_str).join(' ') + "]";
   }
 
   equals(otherList) {
@@ -115,7 +127,7 @@ class MalHashmap extends MalValue {
   }
 
   pr_str() {
-    return "{" + this.value.map(x => x.pr_str).join(' ') + "}";
+    return "{" + this.value.map(x =>pr_str(x)).join(' ') + "}";
   }
 }
 
@@ -142,7 +154,7 @@ class MalAtom extends MalValue {
   }
 
   pr_str() {
-    return '(atom ' + pr_str(this.value) + ')';
+    return '(atom ' + pr_str(this.value, true) + ')';
   }
 
   deref() {
@@ -155,9 +167,7 @@ class MalAtom extends MalValue {
   }
 
   swap(fn, args) {
-    if (fn instanceof MalFunction) {
       this.value = fn.apply(null, [this.value, ...args]);
-    }
     return this.value;
   }
 }

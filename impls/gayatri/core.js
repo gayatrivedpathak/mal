@@ -1,5 +1,5 @@
 const { read_str } = require("./reader");
-const { MalList, MalNil, deepEqual, MalAtom, MalString, pr_str } = require("./types");
+const { MalList, MalNil, deepEqual, MalAtom, MalString, pr_str, MalVector } = require("./types");
 
 const fs = require('fs');
 
@@ -13,9 +13,10 @@ const ns = {
   'count': (list) => list.value.length,
   'list?': (list) => list instanceof MalList,
   'list': (...elements) => new MalList(elements),
+  'vec': (...elements) => new MalVector(...elements),
+
   'empty?': (seq) => seq.value.length === 0,
   'str': (...value) => {
-    // console.log(value);
     return new MalString(value.map(pr_str).join(""))
   },
 
@@ -38,7 +39,6 @@ const ns = {
   'deref': (a) => a.deref(),
   'reset!': (a, value) => a.reset(value),
   'swap!': (atom, fn, ...args) => atom.swap(fn, args),
-
 
   'cons': (value, list) => new MalList([value, ...list.value]),
   'concat': (...lists) => new MalList(lists.flatMap(x => x.value)),
